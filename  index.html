@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>你是哪种猫咪？</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --cream: #FFF8F0;
+  --peach: #FFCFB0;
+  --peach-mid: #FFB08A;
+  --orange: #FF8C5A;
+  --orange-dark: #E06030;
+  --brown-light: #C4845A;
+  --lavender: #EAE0FF;
+  --text-dark: #3A2010;
+  --text-mid: #7A5030;
+  --text-light: #B08060;
+  --white: #FFFFFF;
+  --shadow: 0 4px 24px rgba(120,60,20,0.10);
+  --shadow-sm: 0 2px 10px rgba(120,60,20,0.08);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Nunito', sans-serif;
+  background: var(--cream);
+  min-height: 100vh;
+  color: var(--text-dark);
+  overflow-x: hidden;
+}
+body::before {
+  content: '';
+  position: fixed;
+  top: -120px; right: -120px;
+  width: 400px; height: 400px;
+  background: var(--peach);
+  border-radius: 50%;
+  opacity: 0.4;
+  z-index: 0;
+  pointer-events: none;
+}
+body::after {
+  content: '';
+  position: fixed;
+  bottom: -100px; left: -100px;
+  width: 350px; height: 350px;
+  background: var(--lavender);
+  border-radius: 50%;
+  opacity: 0.4;
+  z-index: 0;
+  pointer-events: none;
+}
+.paw-deco {
+  position: fixed;
+  opacity: 0.055;
+  z-index: 0;
+  pointer-events: none;
+}
+.page {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 20px 60px;
+}
+.screen { width: 100%; max-width: 500px; }
+#startScreen  { text-align: center; animation: fadeUp .5s ease both; padding-top: 80px; }
+#quizScreen   { display: none; }
+#resultScreen { display: none; }
+
+/* START */
+.cat-face {
+  width: 120px; height: 120px;
+  background: var(--white);
+  border-radius: 50%;
+  margin: 0 auto 24px;
+  border: 3px solid var(--peach-mid);
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: var(--shadow);
+  position: relative;
+  overflow: visible;
+}
+.cat-face::before, .cat-face::after {
+  content: '';
+  position: absolute;
+  top: -22px;
+  width: 0; height: 0;
+  border-left: 18px solid transparent;
+  border-right: 18px solid transparent;
+  border-bottom: 30px solid var(--peach-mid);
+}
+.cat-face::before { left: 12px; transform: rotate(-12deg); }
+.cat-face::after  { right: 12px; transform: rotate(12deg); }
+.start-cbti {
+  font-size: 52px;
+  font-weight: 900;
+  color: var(--orange);
+  letter-spacing: 6px;
+  margin-bottom: 16px;
+  line-height: 1;
+}
+.start-title { font-size: 22px; font-weight: 700; color: var(--text-mid); line-height: 1.4; margin-bottom: 48px; }
+.btn-start {
+  background: var(--orange);
+  color: var(--white);
+  border: none;
+  border-radius: 99px;
+  padding: 15px 48px;
+  font-family: 'Nunito', sans-serif;
+  font-size: 16px;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 4px 0 var(--orange-dark);
+  transition: transform .1s, box-shadow .1s;
+}
+.btn-start:hover  { transform: translateY(-2px); box-shadow: 0 6px 0 var(--orange-dark); }
+.btn-start:active { transform: translateY(2px);  box-shadow: 0 2px 0 var(--orange-dark); }
+
+/* QUIZ */
+.quiz-header { display: flex; align-items: center; gap: 14px; margin-bottom: 18px; }
+.btn-back {
+  height: 36px;
+  background: var(--white);
+  border: 1.5px solid var(--peach-mid);
+  border-radius: 99px;
+  display: inline-flex; align-items: center; justify-content: center;
+  gap: 5px;
+  padding: 0 14px;
+  cursor: pointer;
+  flex-shrink: 0;
+  font-family: 'Nunito', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--brown-light);
+  transition: background .15s;
+  box-shadow: var(--shadow-sm);
+  white-space: nowrap;
+}
+.btn-back:hover { background: var(--peach); }
+.btn-back:disabled { opacity: .3; cursor: not-allowed; }
+.btn-back:disabled:hover { background: var(--white); }
+.progress-wrap { flex: 1; }
+.progress-top { display: flex; justify-content: space-between; font-size: 12px; font-weight: 700; color: var(--text-light); margin-bottom: 6px; }
+.progress-track { height: 8px; background: var(--peach); border-radius: 99px; overflow: hidden; }
+.progress-fill { height: 100%; background: linear-gradient(90deg, var(--peach-mid), var(--orange)); border-radius: 99px; transition: width .4s cubic-bezier(.4,0,.2,1); }
+.q-card {
+  background: var(--white);
+  border-radius: 24px;
+  padding: 26px 24px 22px;
+  box-shadow: var(--shadow);
+  border: 1.5px solid var(--peach);
+  margin-bottom: 14px;
+  position: relative;
+  overflow: hidden;
+}
+.q-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, var(--peach-mid), var(--orange)); }
+.q-num  { font-size: 11px; font-weight: 800; color: var(--orange); letter-spacing: 1.5px; margin-bottom: 10px; }
+.q-text { font-size: 16px; font-weight: 700; color: var(--text-dark); line-height: 1.6; }
+.options-grid { display: grid; gap: 9px; }
+.opt-btn {
+  background: var(--white);
+  border: 1.5px solid var(--peach);
+  border-radius: 16px;
+  padding: 13px 16px;
+  font-family: 'Nunito', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-mid);
+  cursor: pointer;
+  text-align: left;
+  line-height: 1.5;
+  transition: all .15s ease;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+.opt-letter {
+  width: 24px; height: 24px;
+  background: var(--cream);
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--orange);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  transition: background .15s, color .15s;
+  margin-top: 1px;
+}
+.opt-btn:hover { border-color: var(--orange); background: var(--cream); color: var(--text-dark); }
+.opt-btn:hover .opt-letter { background: var(--peach); }
+.opt-btn.selected { border-color: var(--orange); background: #FFF3EC; color: var(--text-dark); box-shadow: 0 2px 10px rgba(255,140,90,.15); }
+.opt-btn.selected .opt-letter { background: var(--orange); color: #fff; }
+/* RESULT */
+.result-hero {
+  border-radius: 24px;
+  padding: 32px 24px 26px;
+  box-shadow: var(--shadow);
+  border: 1.5px solid #eee;
+  text-align: center;
+  margin-bottom: 14px;
+  position: relative;
+  overflow: hidden;
+}
+.result-topbar { position: absolute; top: 0; left: 0; right: 0; height: 5px; }
+.result-badge { display: inline-block; font-size: 11px; font-weight: 800; letter-spacing: 1px; padding: 4px 14px; border-radius: 99px; margin-bottom: 10px; }
+.result-name     { font-size: 26px; font-weight: 900; color: var(--text-dark); margin-bottom: 4px; }
+.result-subtitle { font-size: 12px; font-weight: 600; color: var(--text-light); margin-bottom: 18px; }
+.result-desc {
+  font-size: 13.5px; font-weight: 500; color: var(--text-mid);
+  line-height: 1.9; text-align: left;
+  background: rgba(255,255,255,0.6);
+  border-radius: 16px; padding: 16px 18px;
+}
+.radar-card {
+  background: var(--white);
+  border-radius: 24px;
+  padding: 22px 24px;
+  box-shadow: var(--shadow);
+  border: 1.5px solid var(--peach);
+  margin-bottom: 14px;
+}
+.radar-title { font-size: 12px; font-weight: 800; color: var(--text-light); text-align: center; margin-bottom: 14px; letter-spacing: .5px; }
+.radar-wrap { position: relative; height: 280px; display: flex; align-items: center; justify-content: center; }
+.stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 18px; }
+.stat-chip { background: var(--cream); border-radius: 10px; padding: 10px 6px; text-align: center; }
+.stat-n { font-size: 11px; font-weight: 700; color: var(--text-light); margin-bottom: 3px; }
+.stat-v { font-size: 17px; font-weight: 900; color: var(--text-dark); }
+.btn-retry {
+  width: 100%;
+  background: var(--white);
+  color: var(--text-mid);
+  border: 1.5px solid var(--peach-mid);
+  border-radius: 99px;
+  padding: 13px;
+  font-family: 'Nunito', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background .15s;
+}
+.btn-retry:hover { background: var(--cream); }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes pop {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.03); }
+  100% { transform: scale(1); }
+}
+.pop { animation: pop .22s ease; }
+</style>
+</head>
+<body>
+
+<svg class="paw-deco" style="top:7%;right:3%;width:88px" viewBox="0 0 60 60"><ellipse cx="30" cy="42" rx="14" ry="11" fill="#C4845A"/><ellipse cx="12" cy="26" rx="7" ry="9" fill="#C4845A"/><ellipse cx="22" cy="18" rx="7" ry="9" fill="#C4845A"/><ellipse cx="38" cy="18" rx="7" ry="9" fill="#C4845A"/><ellipse cx="48" cy="26" rx="7" ry="9" fill="#C4845A"/></svg>
+<svg class="paw-deco" style="bottom:10%;left:2%;width:68px;transform:rotate(30deg)" viewBox="0 0 60 60"><ellipse cx="30" cy="42" rx="14" ry="11" fill="#C4845A"/><ellipse cx="12" cy="26" rx="7" ry="9" fill="#C4845A"/><ellipse cx="22" cy="18" rx="7" ry="9" fill="#C4845A"/><ellipse cx="38" cy="18" rx="7" ry="9" fill="#C4845A"/><ellipse cx="48" cy="26" rx="7" ry="9" fill="#C4845A"/></svg>
+<svg class="paw-deco" style="top:42%;left:1%;width:52px;transform:rotate(-18deg)" viewBox="0 0 60 60"><ellipse cx="30" cy="42" rx="14" ry="11" fill="#C4845A"/><ellipse cx="12" cy="26" rx="7" ry="9" fill="#C4845A"/><ellipse cx="22" cy="18" rx="7" ry="9" fill="#C4845A"/><ellipse cx="38" cy="18" rx="7" ry="9" fill="#C4845A"/><ellipse cx="48" cy="26" rx="7" ry="9" fill="#C4845A"/></svg>
+
+<div class="page">
+
+<!-- START -->
+<div id="startScreen" class="screen">
+  <div class="start-cbti">CBTI</div>
+  <h1 class="start-title">来看看咪的猫格</h1>
+  <button class="btn-start" onclick="startQuiz()">开始测试</button>
+</div>
+
+<!-- QUIZ -->
+<div id="quizScreen" class="screen">
+  <div class="quiz-header">
+    <button class="btn-back" id="backBtn" onclick="goBack()" disabled>
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" style="flex-shrink:0">
+        <path d="M10 3L5 8L10 13" stroke="#C4845A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      返回上一题
+    </button>
+    <div class="progress-wrap">
+      <div class="progress-top">
+        <span id="qLabel">第 1 题</span>
+        <span id="qCount">1 / 20</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="progressFill" style="width:5%"></div>
+      </div>
+    </div>
+  </div>
+  <div class="q-card" id="qCard">
+    <div class="q-num" id="qNum">Q01</div>
+    <div class="q-text" id="qText"></div>
+  </div>
+  <div class="options-grid" id="optionsGrid"></div>
+</div>
+
+<!-- RESULT -->
+<div id="resultScreen" class="screen">
+  <div class="result-hero" id="resultHero">
+    <div class="result-topbar" id="resultTopbar"></div>
+
+    <div class="result-badge" id="resultBadge"></div>
+    <div class="result-name" id="resultName"></div>
+    <div class="result-subtitle" id="resultSubtitle"></div>
+    <div class="result-desc" id="resultDesc"></div>
+  </div>
+  <div class="radar-card">
+    <div class="radar-title">猫格属性雷达图</div>
+    <div class="radar-wrap">
+      <canvas id="radarCanvas" width="280" height="280" role="img" aria-label="猫格属性雷达图"></canvas>
+    </div>
+    <div class="stats-row" id="statsRow"></div>
+  </div>
+  <button class="btn-retry" onclick="retake()">换个姿势再测一次</button>
+</div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const QUESTIONS = [
+  { q:"你端着猫粮碗走过来，咪会……", opts:["早就在碗边蹲守，眼神把你灵魂锁定","从房间另一头飞奔，差点把你撞成NPC","慢悠悠踱步过来，先蹭你腿再开吃","看都不看，要等它心情上线了才赏脸"], w:["整洁","随性","黏人","高冷"] },
+  { q:"你家来了陌生客人，咪会……", opts:["闪进床底，叫都叫不出来，消失得很彻底","远远盯着对方，眼神像在做背景调查","直接走过去闻闻，然后跳上人家大腿","完全不在乎，我睡我的，关我什么事"], w:["高冷","淡定","黏人","懒懒"] },
+  { q:"你在家用电脑工作，咪会……", opts:["一屁股坐上键盘，顺手帮你把文件全选删除","在旁边绕来绕去，爪子偷偷戳几下按键","坐在键盘边盯着屏幕，一脸若有所思的哲学感","完全不感兴趣，转身就去别处躺平"], w:["随性","好奇","淡定","懒懒"] },
+  { q:"你半夜关灯准备睡觉，咪会……", opts:["突然启动全屋狂奔模式，踩脸踢肚一条龙","早就霸占了被窝最好的位置等你来","坐在窗台盯着窗外黑暗，像个深沉的哲学家","完全不理你，它有它自己的夜生活"], w:["随性","整洁","淡定","懒懒"] },
+  { q:"你拆快递开箱子，咪会……", opts:["快递没拆完它已经住进去了，箱子是我的","在外面仔细嗅完一圈，再谨慎把头探进去","全程坐在旁边监工，表情严肃像个质检员","瞥一眼确认不是吃的，然后转身走人"], w:["随性","好奇","淡定","懒懒"] },
+  { q:"你不小心踩到咪的尾巴，咪会……", opts:["优雅瞪你一眼，然后转身，冷战三天起步","吓一跳，回头确认是你，继续蹭你","哇叫一声然后若无其事，记仇这件事不存在的","立刻伸爪还击，这笔账必须当场清"], w:["高冷","黏人","懒懒","野心"] },
+  { q:"你下班回家开门，咪会……", opts:["早已坐在门口等候，你一进门它就开始汇报","窝里抬个头看你一眼，然后继续入睡","先端着不理你，等你坐下它才慢慢踱过来蹭你","直接冲过来绕腿，叫个不停，像你失踪了一年"], w:["整洁","懒懒","高冷","黏人"] },
+  { q:"你把猫粮换了新品牌，咪会……", opts:["嗅一下，扭头走，用绝食向你表达严正抗议","认真研究老半天，小心翼翼尝一口，沉思中","直接干饭，吃完还意犹未尽","用爪子把碗里的粮全刨到外面，无声的愤怒"], w:["高冷","好奇","随性","野心"] },
+  { q:"你给咪剪指甲，咪会……", opts:["你刚拿出指甲剪它就消失了，瞬间蒸发","乖乖配合，偶尔不耐烦地动一下，算了忍了","全程挣扎，剪完之后坐在那边生闷气，别碰我","无所谓，但剪到一半会突然反水不配合"], w:["高冷","整洁","野心","随性"] },
+  { q:"你心情不好在家哭，咪会……", opts:["悄悄走过来，安静坐在你旁边，就陪着你","被你的哭声惊到，转头跑去躲起来了","用脑袋顶你的手，意思是：摸我，你会好的","完全不理，它的世界里没有这个频道"], w:["淡定","高冷","黏人","懒懒"] },
+  { q:"你刚铺好干净的床单，咪会……", opts:["你刚铺平它就跳上去，躺在正中间，这是我的","铺好之后上去蹭两圈，若无其事走掉，到此一游","对床单本身没兴趣，只想直接钻进被子里","在旁边监督你铺，铺好后绕床检查一遍才放心"], w:["随性","黏人","懒懒","整洁"] },
+  { q:"你坐在地板上，咪会……", opts:["直接爬上来把你当沙发，你在干什么不重要","在旁边绕来绕去，用爪子戳你确认你还活着","闻你一下，确认是你，然后转身走掉","远远坐着对你进行无声的凝视，全程不动"], w:["黏人","好奇","随性","淡定"] },
+  { q:"你睡着之后，咪会……", opts:["踩着你的脸和肚子挑好位置，安然入睡","在你身边蜷好，保持有礼貌的物理距离","趴在你胸口，听着心跳声睡着，很治愈","睡在房间另一头，完全不需要靠近你"], w:["随性","整洁","黏人","高冷"] },
+  { q:"你拿出行李箱准备出门，咪会……", opts:["立刻跳进去坐好，用行动告诉你：你别想走","围着行李箱嗅来嗅去，非要搞清楚这玩意儿来历","远远地盯着看，房间气氛突然沉默了","完全无视，不影响睡眠就行，你去哪随便"], w:["黏人","好奇","淡定","懒懒"] },
+  { q:"你蹲下来跟咪对视，咪会……", opts:["慢慢眨眼，回你一个眯眼，然后凑过来","盯你看一会儿，转头，假装什么都没发生过","立刻低头蹭你手，意思是摸我，别废话了","对视你纹丝不动，气场全开，仿佛在审判你"], w:["淡定","高冷","黏人","野心"] },
+  { q:"你在家做饭，锅铲发出响声，咪会……", opts:["冲进厨房视察，必须搞清楚刚才发生了什么","被吓到缩起来，过一会儿才小心翼翼靠近","完全不管，继续在客厅睡它的觉","坐在厨房门口等食物掉落，守株待兔"], w:["好奇","高冷","懒懒","野心"] },
+  { q:"你打电话说话声音大了，咪会……", opts:["走过来对着你叫，参与你的对话，我也有话说","被吓到，跑去另一个房间，离你远一点","抬头看你一眼，表情嫌弃，继续睡它的大觉","竖起耳朵开始分析，它需要评估这是否有危险"], w:["黏人","高冷","懒懒","淡定"] },
+  { q:"你去洗手间，咪会……", opts:["跟进来，陪你如厕，全程在场，一步不离","在门口等候，你一出来就冲上来蹭你","完全不关心你的行踪，爱去哪去哪","挠一下门，确认有人在，然后转身去干别的"], w:["黏人","整洁","懒懒","好奇"] },
+  { q:"你用逗猫棒逗它，咪会……", opts:["无比认真，蓄力蓄力，然后精准扑击，一击必中","扑了两下觉得没意思，转身走了，不奉陪","玩到停不下来，你要收棒它还要用爪子拽着继续","趴在地上看着逗猫棒晃，懒得动，眼神追踪就行"], w:["野心","高冷","黏人","懒懒"] },
+  { q:"你今天一整天都在忙，没怎么搭理咪，咪会……", opts:["主动来拍你、叫你，必须获得回应，这是它的权利","自己玩自己的，不需要你，非常独立","默默坐在你旁边，不打扰但也不走，就是陪着","等你终于闲下来那一刻，突然扑过来，之前委屈全算上"], w:["黏人","随性","淡定","高冷"] }
+];
+
+const CAT_TYPES = {
+  懒懒: {
+    name:"爱睡觉喵", subtitle:"慵懒是最高级的美学", badge:"佛系天花板",
+    desc:"咪就是那只随时随地都能秒睡、对任何紧急情况都能保持迷之淡定的存在。咪不是真的懒，咪只是对能量守恒有极深的理解——不必要的消耗统统是浪费。咪的人生哲学只有一句话：万事皆可等，没什么值得特地跑起来。咪有一种神秘魔力，能在最混乱的环境里找到最舒适的姿势，在最嘈杂的地方安然入睡。咪并非没有追求，只是咪的追求是「比昨天再舒服一点点」。朋友们觉得咪神奇，因为咪从来不焦虑——其实咪只是把所有焦虑都睡没了。咪是身边最稳的定海神针，无声无息治愈着所有人，但咪自己完全不知道，因为咪正在打盹。",
+    color:"#85B7EB", bg:"#E6F1FB", border:"#378ADD",
+    stats:{ 聪明:62, 活力:22, 社交:45, 神秘:55, 野心:18, 观察:50 }
+  },
+  好奇: {
+    name:"爱研究喵", subtitle:"停不下来的好奇心发动机", badge:"凌晨仨点还在研究",
+    desc:"咪的脑子是一台永不关机的好奇心发动机，每一件事物在咪眼里都有「往深处再看一层」的空间。咪会在凌晨两点研究某个完全用不上的冷知识，会因为一个偶然问题推开十扇新的大门。「等等这为什么会这样」在咪这里出现的频率远远超过「好了我懂了」。对咪来说，无聊不是时间太多，是停止了探索。咪的知识库广阔又杂乱，像一间堆满宝贝的小阁楼，乱中有序只有咪自己知道在哪。朋友有时觉得咪有点钻牛角尖，但咪知道那是咪和世界建立连接的方式。咪最大的恐惧不是失败，是活到最后却没看够这个世界。",
+    color:"#EF9F27", bg:"#FAEEDA", border:"#BA7517",
+    stats:{ 聪明:92, 活力:50, 社交:55, 神秘:65, 野心:60, 观察:88 }
+  },
+  黏人: {
+    name:"爱撒娇喵", subtitle:"行走的移动暖炉", badge:"社牛本牛",
+    desc:"咪走进一个房间，整个房间的温度都会上升几度，这不是比喻，是真的。咪不只是合群，咪是人群里的核心发热体。咪记得所有人的生日、口味偏好、最近在烦什么；咪是朋友低落时第一个出现的那个，带着零食和烂段子。咪的能量来源是人与人之间的连接，独处反而让咪有点不知道怎么充电。咪也有小软肋：太在意别人的感受，有时候忘了自己想要什么。咪怕冷场，怕让人失望。但咪给出的温暖是真实的、没有附加条件的。这个世界上有很多人，因为有咪，而感觉不那么孤单了。",
+    color:"#ED93B1", bg:"#FBEAF0", border:"#D4537E",
+    stats:{ 聪明:68, 活力:78, 社交:97, 神秘:28, 野心:55, 观察:72 }
+  },
+  高冷: {
+    name:"高冷霸总喵", subtitle:"冰山外表，深海内心", badge:"高冷本冷",
+    desc:"咪表面安静如湖面，内心却是整片深海。外人觉得咪神秘，但那不是故意设防——咪只是觉得不是所有东西都需要被说出来。咪对关系要求极高，宁可三两知己，也不要一百个泛泛之交。独处对咪来说是充电，是和自己好好待在一起的珍贵时刻。咪的观察力惊人，但很少主动开口；咪的想法很深，只在合适的人面前展露。有人觉得咪冷漠，但真正了解咪的人知道，咪是这世界上最忠诚的那种人。咪需要找到一个也愿意真正「看见咪」的人，那会是咪这辈子最珍贵的关系。",
+    color:"#AFA9EC", bg:"#EEEDFE", border:"#7F77DD",
+    stats:{ 聪明:83, 活力:42, 社交:22, 神秘:95, 野心:50, 观察:82 }
+  },
+  野心: {
+    name:"野心勃勃喵", subtitle:"锁定目标，冲就完了", badge:"永远在冲",
+    desc:"咪的眼睛里永远有目标的倒影。别人还在想「我该做什么」的时候，咪已经在执行第三步了。咪对平庸有一种本能的排斥，不是不懂安逸，是内心有什么东西不允许咪停下来。咪有强大的行动力，但也有盲区：走得太快会忘记回头看身边的人，太专注结果会忽略过程里真正重要的东西。咪最怕的不是失败本身，是「没有尽全力之后的失败」，那种感觉咪接受不了。咪给身边人一种强大的推动感，但有时候也会带来无形的压力。值得一追的那个对手，其实一直是昨天的咪自己。",
+    color:"#F0997B", bg:"#FAECE7", border:"#D85A30",
+    stats:{ 聪明:78, 活力:90, 社交:60, 神秘:52, 野心:97, 观察:70 }
+  },
+  淡定: {
+    name:"淡定观察喵", subtitle:"什么都逃不过咪的眼睛", badge:"人间清醒",
+    desc:"咪站在人群边缘，十分钟内就已经把所有人的关系网、情绪状态、潜在矛盾全部摸清楚了。咪不说话，但咪什么都知道。咪的观察不带恶意，那是咪理解这个世界的方式。咪能从一个人说话的停顿里听出犹豫，从一个眼神里看出没说出口的话。这种能力让咪洞察力惊人，但有时候负担也很重——咪知道太多，反而难以放下。咪的另一面是：咪被观察到的机会极少，因为大家都在不自觉地被咪看。咪需要找到一个也愿意好好「看见咪」的人，那会是最值得珍惜的关系。",
+    color:"#5DCAA5", bg:"#E1F5EE", border:"#1D9E75",
+    stats:{ 聪明:90, 活力:40, 社交:48, 神秘:80, 野心:58, 观察:99 }
+  },
+  随性: {
+    name:"随性自由喵", subtitle:"活在当下，下一秒才是计划", badge:"自由本自由",
+    desc:"咪把「随机」过成了一种人生哲学。咪不是没有想法，咪只是觉得生活最好玩的部分全都藏在计划之外。咪能在完全陌生的城市玩得如鱼得水，能在最荒唐的处境里找到乐趣。对自由的需求是刻在骨子里的——被束缚会让咪呼吸困难。咪不是不负责任，只是对「明天」保持一种健康的不执念。咪的能量感染力极强，跟着咪的人总觉得「今天发生了点什么值得记住的事」。弱点是情绪来得快去得也快，长期目标对咪来说像雾，不太抓得住。但咪拥有很多人羡慕的东西：咪是真的活在当下。",
+    color:"#D4537E", bg:"#FBEAF0", border:"#993556",
+    stats:{ 聪明:70, 活力:85, 社交:75, 神秘:58, 野心:42, 观察:55 }
+  },
+  整洁: {
+    name:"爱整洁喵", subtitle:"秩序即安全感", badge:"掌控感满分",
+    desc:"咪的世界是一张精密运转的时刻表，每个变量都在咪的预期范围内，每件事都有它应该在的位置。咪不是控制欲强，咪只是对混乱有一种真实的不安——当一切在掌控之中，咪才能真正放松下来。咪极度可靠，是朋友圈里那个「找他准没错」的人。咪把对他人的爱藏在「帮你把事情安排好」里面，那是咪表达关心的独家语言。咪的软肋是：意外会让咪消耗大量能量，别人不按咪的节奏走会让咪悄悄烦躁。偶尔练习一下「放手」——不是放弃掌控，而是允许世界稍微乱一点点，真的没事的。",
+    color:"#5DCAA5", bg:"#E1F5EE", border:"#0F6E56",
+    stats:{ 聪明:80, 活力:55, 社交:62, 神秘:45, 野心:75, 观察:85 }
+  }
+};
+
+const STAT_LABELS = ["聪明","活力","社交","神秘","野心","观察"];
+const LETTERS = ['A','B','C','D'];
+
+let currentQ = 0;
+let answers = new Array(QUESTIONS.length).fill(null);
+let radarChart = null;
+
+function startQuiz() {
+  document.getElementById('startScreen').style.display = 'none';
+  const qs = document.getElementById('quizScreen');
+  qs.style.display = 'block';
+  qs.style.animation = 'none';
+  void qs.offsetWidth;
+  qs.style.animation = 'fadeUp .4s ease both';
+  renderQuestion();
+}
+
+function renderQuestion() {
+  const q = QUESTIONS[currentQ];
+  const total = QUESTIONS.length;
+  document.getElementById('qLabel').textContent = '第 ' + (currentQ + 1) + ' 题';
+  document.getElementById('qCount').textContent = (currentQ + 1) + ' / ' + total;
+  document.getElementById('progressFill').style.width = Math.round((currentQ + 1) / total * 100) + '%';
+  document.getElementById('qNum').textContent = 'Q' + String(currentQ + 1).padStart(2, '0');
+  document.getElementById('qText').textContent = q.q;
+
+  const card = document.getElementById('qCard');
+  card.classList.remove('pop');
+  void card.offsetWidth;
+  card.classList.add('pop');
+
+  const grid = document.getElementById('optionsGrid');
+  grid.innerHTML = '';
+  q.opts.forEach(function(opt, i) {
+    const btn = document.createElement('button');
+    btn.className = 'opt-btn' + (answers[currentQ] === i ? ' selected' : '');
+    btn.onclick = function() { selectOpt(i); };
+
+    const ltr = document.createElement('span');
+    ltr.className = 'opt-letter';
+    ltr.textContent = LETTERS[i];
+    if (answers[currentQ] === i) {
+      ltr.style.background = 'var(--orange)';
+      ltr.style.color = '#fff';
+    }
+
+    const txt = document.createElement('span');
+    txt.textContent = opt;
+
+    btn.appendChild(ltr);
+    btn.appendChild(txt);
+    grid.appendChild(btn);
+  });
+
+  document.getElementById('backBtn').disabled = currentQ === 0;
+}
+
+function selectOpt(idx) {
+  answers[currentQ] = idx;
+  document.querySelectorAll('.opt-btn').forEach(function(btn, i) {
+    const sel = i === idx;
+    btn.classList.toggle('selected', sel);
+    const ltr = btn.querySelector('.opt-letter');
+    ltr.style.background = sel ? 'var(--orange)' : '';
+    ltr.style.color = sel ? '#fff' : '';
+  });
+  setTimeout(function() { goNext(); }, 360);
+}
+
+function goBack() {
+  if (currentQ > 0) { currentQ--; renderQuestion(); }
+}
+
+function goNext() {
+  if (answers[currentQ] === null) return;
+  if (currentQ < QUESTIONS.length - 1) {
+    currentQ++;
+    renderQuestion();
+  } else {
+    showResult();
+  }
+}
+
+function calcResult() {
+  const counts = {};
+  answers.forEach(function(ansIdx, qi) {
+    if (ansIdx === null) return;
+    const w = QUESTIONS[qi].w[ansIdx];
+    counts[w] = (counts[w] || 0) + 1;
+  });
+  return Object.entries(counts).sort(function(a, b) { return b[1] - a[1]; })[0][0];
+}
+
+function showResult() {
+  const key = calcResult();
+  const cat = CAT_TYPES[key];
+
+  document.getElementById('quizScreen').style.display = 'none';
+  const rs = document.getElementById('resultScreen');
+  rs.style.display = 'block';
+  rs.style.animation = 'none';
+  void rs.offsetWidth;
+  rs.style.animation = 'fadeUp .5s ease both';
+
+  const hero = document.getElementById('resultHero');
+  hero.style.background = cat.bg;
+  hero.style.borderColor = cat.border;
+
+  document.getElementById('resultTopbar').style.background =
+    'linear-gradient(90deg,' + cat.color + ',' + cat.border + ')';
+
+  let earTag = document.getElementById('earStyleTag');
+  if (earTag) earTag.remove();
+
+  const badge = document.getElementById('resultBadge');
+  badge.textContent = cat.badge;
+  badge.style.background = cat.bg;
+  badge.style.color = cat.border;
+  badge.style.border = '1.5px solid ' + cat.border;
+
+  document.getElementById('resultName').textContent = cat.name;
+  document.getElementById('resultSubtitle').textContent = cat.subtitle;
+  document.getElementById('resultDesc').textContent = cat.desc;
+
+  const statsRow = document.getElementById('statsRow');
+  statsRow.innerHTML = '';
+  STAT_LABELS.forEach(function(label) {
+    const chip = document.createElement('div');
+    chip.className = 'stat-chip';
+    chip.innerHTML = '<div class="stat-n">' + label + '</div><div class="stat-v">' + cat.stats[label] + '</div>';
+    statsRow.appendChild(chip);
+  });
+
+  if (radarChart) { radarChart.destroy(); radarChart = null; }
+  const isDark = matchMedia('(prefers-color-scheme: dark)').matches;
+  const gridCol  = isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)';
+  const labelCol = isDark ? 'rgba(255,255,255,0.55)' : '#B08060';
+  const vals = STAT_LABELS.map(function(l) { return cat.stats[l]; });
+
+  radarChart = new Chart(document.getElementById('radarCanvas'), {
+    type: 'radar',
+    data: {
+      labels: STAT_LABELS,
+      datasets: [{
+        data: vals,
+        backgroundColor: cat.color + '30',
+        borderColor: cat.color,
+        borderWidth: 2.5,
+        pointBackgroundColor: cat.color,
+        pointRadius: 4,
+        pointHoverRadius: 6
+      }]
+    },
+    options: {
+      responsive: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        r: {
+          min: 0, max: 100,
+          ticks: { display: false, stepSize: 25 },
+          grid: { color: gridCol },
+          angleLines: { color: gridCol },
+          pointLabels: { color: labelCol, font: { size: 12, weight: '700', family: 'Nunito' } }
+        }
+      }
+    }
+  });
+}
+
+function retake() {
+  currentQ = 0;
+  answers = new Array(QUESTIONS.length).fill(null);
+  if (radarChart) { radarChart.destroy(); radarChart = null; }
+  document.getElementById('resultScreen').style.display = 'none';
+  const ss = document.getElementById('startScreen');
+  ss.style.display = 'block';
+  ss.style.animation = 'none';
+  void ss.offsetWidth;
+  ss.style.animation = 'fadeUp .4s ease both';
+}
+</script>
+</body>
+</html>
